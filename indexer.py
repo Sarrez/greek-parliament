@@ -5,6 +5,12 @@ import csv
 import pandas as pd
 import json
 import time
+from nltk.corpus import stopwords
+from nltk.tokenize import sent_tokenize, word_tokenize
+import string 
+import unicodedata as ud
+from greek_stemmer import GreekStemmer
+
 
 
 
@@ -12,7 +18,7 @@ import numpy as np
 
 csv.field_size_limit(291950)
 
-dataframe = pd.read_csv('Greek_Parliament_Proceedings_1989_2020.csv', chunksize=10000)
+dataframe = pd.read_csv('Greek_Parliament_Proceedings_1989_2020.csv', chunksize=100)
 
 
 # df = pd.DataFrame(dataframe)
@@ -20,6 +26,29 @@ dataframe = pd.read_csv('Greek_Parliament_Proceedings_1989_2020.csv', chunksize=
 
 def tokenize(row):
     return word_tokenize(row)
+
+# add encoding="utf8" at line 339
+stemmer = GreekStemmer()
+
+
+# load stopwords
+with open('stopwords.txt', encoding='utf-8') as file:
+    stopwords = [line.rstrip() for line in file]
+# print(stopwords)
+
+
+
+def preprocess_doc(doc: str) -> list:
+    d = {ord('\N{COMBINING ACUTE ACCENT}'):None}
+    if doc!="":
+        words = [stemmer.stem(ud.normalize('NFD',w).upper().translate(d)).lower() for w in word_tokenize(doc) if w not in stopwords and w not in string.punctuation]
+    return words
+        
+# doc = "!Τρεις. τίγρεις ]\. και, τρία><τιγράκια'"
+# ws = preprocess_doc(doc)
+# print(ws)
+
+
 
 chunk = []
 tokens = {}
@@ -30,7 +59,7 @@ for data in dataframe:
     chunk = (data["speech"].values.tolist())
     
     for i, row in enumerate(chunk):
-        words_in_row = tokenize(row)
+        words_in_row = preprocess_doc(row)
         # print("ROW: ", i, "\n")
         # print(words_in_row)
         # print("\n")
@@ -86,7 +115,7 @@ j = 0
 for token in tokens:
     print("TOKEN: ", token)
     # print("DOCUMENTS: ", tokens[token][0], "POSTING LIST: ", tokens[token][1])
-    if(j == 3):
+    if(j == 100):
         break
     j += 1
 # print(tokens)
