@@ -1,4 +1,5 @@
 from indexer import create_index
+import query_processor as qp
 import unittest
 import pandas as pd
 
@@ -28,7 +29,12 @@ class TestIndex(unittest.TestCase):
         posting_list = tokens['αυτ']['postinglist']
         correct = {'0':1, '1':1}
 
-
+class TestTopk(unittest.TestCase):
+    def test_idf(self):
+        dataframe = pd.read_csv('test.csv', encoding='utf8', chunksize=3)
+        tokens = create_index(dataframe = dataframe)
+        data = tokens['αυτ']
+        idf = qp.idf(num_of_docs=3, num_of_docs_with_term=data["numdocs"])
 
 if __name__ == '__main__':
     unittest.main()
