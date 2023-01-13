@@ -15,17 +15,20 @@ import numpy as np
 import re
 
 
-mongo_client = pymongo.MongoClient("mongodb://localhost:27017/")
-mongo_client.drop_database("GreekParliamentProceedings")
-inverted_index = mongo_client["GreekParliamentProceedings"]
-collection = inverted_index["InvertedIndex"]
+
+
+def create_db():    
+    mongo_client = pymongo.MongoClient("mongodb://localhost:27017/")
+    mongo_client.drop_database("GreekParliamentProceedings")
+    inverted_index = mongo_client["GreekParliamentProceedings"]
+    collection = inverted_index["InvertedIndex"]
+    return collection
 
 
 def tokenize(row):
     return word_tokenize(row)
 
 # add encoding="utf8" at line 339
-stemmer = GreekStemmer()
 
 
 
@@ -34,6 +37,7 @@ stemmer = GreekStemmer()
 
 
 def preprocess_doc(doc: str) -> list:
+    stemmer = GreekStemmer()
     d = {ord('\N{COMBINING ACUTE ACCENT}'):None}
     # load stopwords
     with open('stopwords.txt', encoding='utf-8') as file:
@@ -50,11 +54,13 @@ def preprocess_doc(doc: str) -> list:
 
 def create_index(dataframe):
     chunk = []
-    tokens = {}
     counter = 0
     start_time = time.time()
+    
+    collection = create_db()
 
     for data in dataframe:
+        tokens = {}
         chunk = (data["speech"].values.tolist())
         print("Length of chunk: ", len(chunk))
         #chunk = ["This is a sentance","This is another one"]
@@ -89,22 +95,28 @@ def create_index(dataframe):
                     #term not in index
                     tokens[word]={"numdoc":1, "postinglist":{str(i) : words_in_row.count(word)}}
                 
+                
+        
+        insert_to_database(tokens, collection)
         counter +=1
         print("CHUNK", counter, " FINISHED")
         print("Number of Tokens: ", len(tokens))
         
         print(type(tokens))
-        if(counter == 3):
+        if(counter == 2):
             break
-        
-        
-        #for token in tokens:
-        #    token_to_insert = {token:{"numdoc":tokens[token]["numdoc"], "postinglist":tokens[token]["postinglist"]}} 
-        #    x = collection.insert_one(token_to_insert)
-        #    break
-        
-        
+    
+    
     return tokens
+
+        
+def insert_to_database(tokens, collection):    
+
+    for token in tokens:
+        token_to_insert = {token:{"numdoc":tokens[token]["numdoc"], "postinglist":tokens[token]["postinglist"]}} 
+        x = collection.insert_one(token_to_insert)
+    #    break
+            
 # print(tokens)
 # print(tokens['παρακαλειτα'])
 # print(tokens)
