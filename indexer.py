@@ -103,17 +103,17 @@ def create_index(dataframe):
         print("Number of Tokens: ", len(tokens))
         
         print(type(tokens))
-        if(counter == 2):
+        if(counter == 1):
             break
     
     
-    return tokens
+    return collection
 
         
 def insert_to_database(tokens, collection):    
 
     for token in tokens:
-        token_to_insert = {token:{"numdoc":tokens[token]["numdoc"], "postinglist":tokens[token]["postinglist"]}} 
+        token_to_insert = {"_id":token, "list":{"numdoc":tokens[token]["numdoc"], "postinglist":tokens[token]["postinglist"]}} 
         x = collection.insert_one(token_to_insert)
     #    break
             
