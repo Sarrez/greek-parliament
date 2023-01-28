@@ -19,7 +19,7 @@ import re
 
 def create_db():    
     mongo_client = pymongo.MongoClient("mongodb://localhost:27017/")
-    mongo_client.drop_database("GreekParliamentProceedings")
+    #mongo_client.drop_database("GreekParliamentProceedings")
     inverted_index = mongo_client["GreekParliamentProceedings"]
     collection = inverted_index["InvertedIndex"]
     return collection
@@ -29,10 +29,6 @@ def tokenize(row):
     return word_tokenize(row)
 
 # add encoding="utf8" at line 339
-
-
-
-# print(stopwords)
 
 
 
@@ -52,7 +48,7 @@ def preprocess_doc(doc: str) -> list:
 # print(ws)
 
 
-def create_index(dataframe):
+def create_index(dataframe, c):
     chunk = []
     counter = 0
     start_time = time.time()
@@ -63,6 +59,7 @@ def create_index(dataframe):
         tokens = {}
         chunk = (data["speech"].values.tolist())
         print("Length of chunk: ", len(chunk))
+        size_distribution = []
         #chunk = ["This is a sentance","This is another one"]
         for i, row in enumerate(chunk):
             words_in_row = preprocess_doc(row.lower())
@@ -74,14 +71,17 @@ def create_index(dataframe):
             When the chunk is finished, we will create a json file with the index of this chunk and we'll do the process again for the next chunk.
             
             '''
+            size_distribution.append(len(words_in_row))
             
             for word in words_in_row:
                 
                 if word in tokens.keys():
                     #term already in index
+                   
                     if i not in tokens[word]["postinglist"].keys():
                         #term in other document
                         #n = tokens[word]["numdoc"]
+
                         tokens[word]["postinglist"][str(i)] = words_in_row.count(word)
                         tokens[word]["numdoc"] = len(tokens[word]["postinglist"])
 
@@ -100,23 +100,38 @@ def create_index(dataframe):
         insert_to_database(tokens, collection)
         counter +=1
         print("CHUNK", counter, " FINISHED")
-        print("Number of Tokens: ", len(tokens))
+        #print("Number of Tokens: ", len(tokens))
         
-        print(type(tokens))
-        if(counter == 1):
+        #print(type(tokens))
+        if(counter == c):
             break
     
     
-    return collection
+    return collection, tokens, size_distribution
 
         
 def insert_to_database(tokens, collection):    
 
     for token in tokens:
-        token_to_insert = {"_id":token, "list":{"numdoc":tokens[token]["numdoc"], "postinglist":tokens[token]["postinglist"]}} 
-        x = collection.insert_one(token_to_insert)
-    #    break
+        exists = collection.find_one( { "_id": token } )
+        if(not exists):
+            token_to_insert = {"_id":token, "list":{"numdoc":tokens[token]["numdoc"], "postinglist":tokens[token]["postinglist"]}} 
+            x = collection.insert_one(token_to_insert)
+        else:
+            #token alreay in list, update numdoc and merge posting lists
+            query = { "_id": token }
+            x=collection.find_one(query)
+            numdoc = x['list']['numdoc'] + tokens[token]["numdoc"]
+            #print('id:',x['_id'] )
+            #print('new numdoc: ', x['list']['numdoc'])
+            #print("new posting list length:", len(tokens[token]["postinglist"]))
+            x['list']['postinglist'].update(tokens[token]["postinglist"])
+            token_to_update = {"list":{"numdoc":numdoc, "postinglist":x['list']['postinglist']}}
+            collection.update_one({"_id":token}, {"$set":token_to_update})
+            #print('updated')
             
+    #    break
+
 # print(tokens)
 # print(tokens['παρακαλειτα'])
 # print(tokens)
