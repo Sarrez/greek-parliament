@@ -1,17 +1,10 @@
-import nltk
-from nltk.corpus import stopwords
-from nltk.tokenize import sent_tokenize, word_tokenize
-import csv
+from nltk.tokenize import word_tokenize
 import pandas as pd
-import json
 import time
-from nltk.corpus import stopwords
-from nltk.tokenize import sent_tokenize, word_tokenize
 import string 
 import unicodedata as ud
 from greek_stemmer import GreekStemmer
 import pymongo
-import numpy as np
 import re
 
 """Indexer Script
