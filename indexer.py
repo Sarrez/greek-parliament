@@ -14,23 +14,43 @@ import pymongo
 import numpy as np
 import re
 
+"""Indexer Script
 
+This script is used to set up the data used in this project.
+
+It creates a MongoDB database with two collections:
+1. Database: stores all data from a csv
+2. InvertedIndex: stores inverted index
+
+The script first stores all data into the Database collection. 
+It then creates the inverted index and stores it in the InvertedIndex collection.
+The algorithm to create the index is based on a merging technique, where data is read in chunks from the Database collection. 
+The index is created in parts and merging happens when inserting the index in MongoDB.
+
+The script can be imported as a module and contains the methods listed:
+
+    * create_db - connects to Mongo, creates database and collections
+    * tokenize - tokenizes a string
+    * preprocess_doc - performs stemming, removes punctuation and stopwords
+    * insert_db
+    * create_index
+    * insert_to_database
+"""
 
 
 def create_db():    
     mongo_client = pymongo.MongoClient("mongodb://localhost:27017/")
     #mongo_client.drop_database("GreekParliamentProceedings")
-    inverted_index = mongo_client["GreekParliamentProceedings"]
-    collection = inverted_index["InvertedIndex"]
-    return collection
+    client = mongo_client["GreekParliamentProceedings"]
+    index = client["InvertedIndex"]
+    database = client["Database"]
+    return index, database
 
 
 def tokenize(row):
     return word_tokenize(row)
 
 # add encoding="utf8" at line 339
-
-
 
 def preprocess_doc(doc: str) -> list:
     stemmer = GreekStemmer()
@@ -42,27 +62,46 @@ def preprocess_doc(doc: str) -> list:
     if doc!="":
         words = [stemmer.stem(ud.normalize('NFD',w).upper().translate(d)).lower() for w in filter(None, re.split("[,~`; _'.\-!?:]+",doc)) if w not in stopwords and w not in string.punctuation]
     return words
-        
-# doc = "!Τρεις. τίγρεις ]\. και, τρία><τιγράκια'"
-# ws = preprocess_doc(doc)
-# print(ws)
 
+def insert_db(path_to_csv:str):
+    mongo_client = pymongo.MongoClient("mongodb://localhost:27017/")
+    database = mongo_client["GreekParliamentProceedings"]
+    collection = database["Database"]
+    if len(list(collection.find({"_id":"0"})))==0:
+        dataframe = pd.read_csv(path_to_csv)
+        counter = 0
+        index = 0
+        for i in range(len(dataframe)):
+            row = dataframe.loc[i, :].values.flatten().tolist()
+            collection.insert_one({"_id":str(index), "member_name":row[0],"sitting_date":row[1],
+                                    "parliamentary_period":row[2],"parliamentary_session":row[3],
+                                    "parliamentary_sitting":row[4],"political_party":row[5],
+                                    "government":row[6],"member_region":row[7],
+                                    "roles":row[8],
+                                    "member_gender":row[9],
+                                    "speech":row[10]}                  
+                                    )
+            index += 1
+    else:
+        print("Database collection already has entries")
 
-def create_index(dataframe, c):
+def create_index(total_documents:int, chunksize:int):
     chunk = []
     counter = 0
     start_time = time.time()
-    
-    collection = create_db()
-
-    for data in dataframe:
+    #get inverted index
+    index, database = create_db()
+    ticks = [x for x in range(0,total_documents,chunksize)]
+    ticks.append(total_documents)
+    for j in range(len(ticks)-1):
         tokens = {}
-        chunk = (data["speech"].values.tolist())
+        chunk = list(database.find({ }, { "_id": 1, "speech": 1 })[ticks[j]:ticks[j+1]])
         print("Length of chunk: ", len(chunk))
         size_distribution = []
         #chunk = ["This is a sentance","This is another one"]
+        #for each speech
         for i, row in enumerate(chunk):
-            words_in_row = preprocess_doc(row.lower())
+            words_in_row = preprocess_doc(row["speech"].lower())
             '''
             
             TOKENIZED ROWS IN ROW
@@ -71,82 +110,89 @@ def create_index(dataframe, c):
             When the chunk is finished, we will create a json file with the index of this chunk and we'll do the process again for the next chunk.
             
             '''
-            size_distribution.append(len(words_in_row))
-            
-            for word in words_in_row:
+            if(len(words_in_row)>10):
+                size_distribution.append(len(words_in_row))
                 
-                if word in tokens.keys():
-                    #term already in index
-                   
-                    if i not in tokens[word]["postinglist"].keys():
-                        #term in other document
-                        #n = tokens[word]["numdoc"]
+                for word in words_in_row:
+                    
+                    if word in tokens.keys():
+                        #term already in index
+                    
+                        if i not in tokens[word]["postinglist"].keys():
+                            #term in other document
+                            #n = tokens[word]["numdoc"]
 
-                        tokens[word]["postinglist"][str(i)] = words_in_row.count(word)
-                        tokens[word]["numdoc"] = len(tokens[word]["postinglist"])
+                            tokens[word]["postinglist"][row["_id"]] = words_in_row.count(word)
+                            tokens[word]["numdoc"] = len(tokens[word]["postinglist"])
 
+                        else:
+                            #term in same document
+                            n = tokens[word]["numdoc"]
+                            tokens[word]["numdoc"] = n+1
+                            pass
+                            
                     else:
-                        #term in same document
-                        n = tokens[word]["numdoc"]
-                        tokens[word]["numdoc"] = n+1
-                        pass
-                        
-                else:
-                    #term not in index
-                    tokens[word]={"numdoc":1, "postinglist":{str(i) : words_in_row.count(word)}}
+                        #term not in index
+                        #replaced str(i) with row["_id"]
+                        tokens[word]={"numdoc":1, "postinglist":{row["_id"] : words_in_row.count(word)}}
+            
                 
-                
-        
-        insert_to_database(tokens, collection)
+        #insert chunk of tokens to a mongo collection named index
+        insert_to_database(tokens, index)
         counter +=1
         print("CHUNK", counter, " FINISHED")
-        #print("Number of Tokens: ", len(tokens))
-        
-        #print(type(tokens))
-        if(counter == c):
-            break
     
-    
-    return collection, tokens, size_distribution
+    return index, database, tokens, size_distribution
 
         
 def insert_to_database(tokens, collection):    
-
+    """ Inserts a part of the inverted index into MongoDB """
     for token in tokens:
+        #check if token already exists in MongoDB
         exists = collection.find_one( { "_id": token } )
         if(not exists):
+            #if token doesn't exist in MongoDB, insert it to Mongo
             token_to_insert = {"_id":token, "list":{"numdoc":tokens[token]["numdoc"], "postinglist":tokens[token]["postinglist"]}} 
             x = collection.insert_one(token_to_insert)
         else:
-            #token alreay in list, update numdoc and merge posting lists
+            #if token exists in MongoDB, get object from Mongo and update values
             query = { "_id": token }
             x=collection.find_one(query)
+            #sum numdoc fields
             numdoc = x['list']['numdoc'] + tokens[token]["numdoc"]
-            #print('id:',x['_id'] )
-            #print('new numdoc: ', x['list']['numdoc'])
-            #print("new posting list length:", len(tokens[token]["postinglist"]))
+            #merge posting lists
             x['list']['postinglist'].update(tokens[token]["postinglist"])
             token_to_update = {"list":{"numdoc":numdoc, "postinglist":x['list']['postinglist']}}
             collection.update_one({"_id":token}, {"$set":token_to_update})
-            #print('updated')
-            
-    #    break
 
-# print(tokens)
-# print(tokens['παρακαλειτα'])
-# print(tokens)
-#delta_time = time.time() - start_time
-#print("Time for ", len(tokens), "tokens: ", delta_time)
-#dataframe = pd.read_csv('Greek_Parliament_Proceedings_1989_2020.csv', chunksize=1000)
 
-#tokens = create_index(dataframe)
+#create index (must import database to mongo first!!!!!!! )
+import argparse
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        'csv_path',
+        type=str,
+        help="Path of csv file"
+    )
+    parser.add_argument(
+        'total_documents',
+        type=int,
+        help="Number of documents to read"
+    )
+    parser.add_argument(
+        'chunksize',
+        type=int,
+        help="The number of chunks"
+    )
+    args = parser.parse_args()
+    index, database = create_db()
+    insert_db(args.csv_path)
+    if len(list(index.find_one({"_id":"παρακαλειτα"})))==0:
+        create_index(args.total_documents, args.chunksize)
+    else:
+        print("Inverted Index collection already has entries.")
 
-#j = 0
-#for token in tokens.keys():
-    #print("TOKEN: ", token)
-    #print("DOCUMENTS: ", tokens[token]["numdoc"])
-    #print(tokens[token])
-    #print(len(tokens[token]["postinglist"]))
-    #if(j == 100):
-    #    break
-    #j += 1
+
+if __name__ == "__main__":
+    main()
