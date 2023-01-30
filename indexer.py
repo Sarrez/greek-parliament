@@ -57,6 +57,7 @@ def preprocess_doc(doc: str) -> list:
     return words
 
 def insert_db(path_to_csv:str):
+    print("Inserting csv to MongoDB...")
     mongo_client = pymongo.MongoClient("mongodb://localhost:27017/")
     database = mongo_client["GreekParliamentProceedings"]
     collection = database["Database"]
@@ -79,6 +80,7 @@ def insert_db(path_to_csv:str):
         print("Database collection already has entries")
 
 def create_index(total_documents:int, chunksize:int):
+    print("Creating Inverted Index...")
     chunk = []
     counter = 0
     start_time = time.time()
@@ -166,7 +168,7 @@ def main():
     parser.add_argument(
         'csv_path',
         type=str,
-        help="Path of csv file"
+        help="Path to csv file"
     )
     parser.add_argument(
         'total_documents',
@@ -181,11 +183,7 @@ def main():
     args = parser.parse_args()
     index, database = create_db()
     insert_db(args.csv_path)
-    if len(list(index.find_one({"_id":"παρακαλειτα"})))==0:
-        create_index(args.total_documents, args.chunksize)
-    else:
-        print("Inverted Index collection already has entries.")
-
+    create_index(args.total_documents, args.chunksize)
 
 if __name__ == "__main__":
     main()
