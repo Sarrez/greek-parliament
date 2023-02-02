@@ -39,21 +39,19 @@ def create_db():
     database = client["Database"]
     return index, database
 
-
 def tokenize(row):
     return word_tokenize(row)
 
 # add encoding="utf8" at line 339
-
-def preprocess_doc(doc: str) -> list:
-    stemmer = GreekStemmer()
+import time
+def preprocess_doc(doc: str, stopwords:list) -> list:
+    doc = doc.lower()
     d = {ord('\N{COMBINING ACUTE ACCENT}'):None}
-    # load stopwords
-    with open('stopwords.txt', encoding='utf-8') as file:
-        stopwords = [line.rstrip() for line in file]
+    doc = ud.normalize('NFD',doc).translate(d)
+    stemmer = GreekStemmer()
     #doc = doc.lower()
     if doc!="":
-        words = [stemmer.stem(ud.normalize('NFD',w).upper().translate(d)).lower() for w in filter(None, re.split("[,~`; _'.\-!?:]+",doc)) if w not in stopwords and w not in string.punctuation]
+        words = [stemmer.stem(w.upper()).lower() for w in filter(None, re.split('[,~`; _".\-!?:]+',doc)) if w not in stopwords and w not in string.punctuation]
     return words
 
 def insert_db(path_to_csv:str):
@@ -88,6 +86,9 @@ def create_index(total_documents:int, chunksize:int):
     index, database = create_db()
     ticks = [x for x in range(0,total_documents,chunksize)]
     ticks.append(total_documents)
+    # load stopwords
+    with open('stopwords.txt', encoding='utf-8') as file:
+        stopwords = [line.rstrip() for line in file]
     for j in range(len(ticks)-1):
         tokens = {}
         chunk = list(database.find({ }, { "_id": 1, "speech": 1 })[ticks[j]:ticks[j+1]])
@@ -95,8 +96,9 @@ def create_index(total_documents:int, chunksize:int):
         size_distribution = []
         #chunk = ["This is a sentance","This is another one"]
         #for each speech
+        start_time = time.time()
         for i, row in enumerate(chunk):
-            words_in_row = preprocess_doc(row["speech"].lower())
+            words_in_row = preprocess_doc(row["speech"].lower(), stopwords)
             '''
             
             TOKENIZED ROWS IN ROW
@@ -105,7 +107,7 @@ def create_index(total_documents:int, chunksize:int):
             When the chunk is finished, we will create a json file with the index of this chunk and we'll do the process again for the next chunk.
             
             '''
-            if(len(words_in_row)>10):
+            if(len(words_in_row)>20):
                 size_distribution.append(len(words_in_row))
                 
                 for word in words_in_row:
@@ -130,10 +132,14 @@ def create_index(total_documents:int, chunksize:int):
                         #term not in index
                         #replaced str(i) with row["_id"]
                         tokens[word]={"numdoc":1, "postinglist":{row["_id"] : words_in_row.count(word)}}
-            
+        end_time = time.time()
+        print("Chunk finished after: ", end_time - start_time)
                 
         #insert chunk of tokens to a mongo collection named index
+        start_time = time.time()
         insert_to_database(tokens, index)
+        end_time = time.time()
+        print("Chunk into MongoDB: ", end_time - start_time)
         counter +=1
         print("CHUNK", counter, " FINISHED")
     
