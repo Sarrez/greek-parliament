@@ -9,6 +9,7 @@ import re
 import numpy as np
 from collections import Counter
 from statistics import mode
+from indexer import preprocess_doc
 
 
 def create_db():    
@@ -21,154 +22,118 @@ def create_db():
 
 index, database = create_db()
 
-
+# Getting the TF value of a token, given a list of tokens that appear in a document.
+# The document_tokens list is the result of the preprocess_docs() function which returns
+# a list of each token of a document, preproccesed (remove stopwords, stemming etc.) in the
+# order they appear on the document. The elements on the list (i.e., the tokens) are not unique,
+# they are just a list representation of the document.
 def get_frequency(query_token, document_tokens):
-    print("getting term frequency") 
+    # print("getting term frequency") 
+    # print("query token ", query_token)
     # print(document_tokens)
-    # print(document_tokens)
-    # print(type(document_tokens))
-    frequencies = Counter(document_tokens)
-    # print("FREQUENCIES : ", frequencies)
-    # print(query_token)
-    term_freq = frequencies.get(query_token)
-    # print("TF: ", term_freq)
     
+    # Using the Counter class to count the frequencies of each token
+    # and then getting the maximum frequency using the Counter.most_common() method
+    # Also, using the Counter.get() method to get the frequency of the query_token 
+    # in the document.
+    frequencies = Counter(document_tokens)
+    term_freq = frequencies.get(query_token)
     max_freq = frequencies.most_common(1)[0][1]
-    print("MAX_FREQ: ", max_freq, "TERM_FREQ: ", term_freq)
+    
+    # print("MAX_FREQ: ", max_freq, "TERM_FREQ: ", term_freq)
+    
+    # If the term_freq (i.e., the frequency of the query_token) is not set (is None)
+    # then we return 0, since tf would be 0/max_freq which is 0.
     if(term_freq == None):
         return 0
+    
+    # compute the tf (term_frequency) as term_freq / max_freq. 
+    # We normalize the frequency in order to avoid a bias towards larger documents.
     tf = term_freq / max_freq
-    
-    
+        
     return tf
-    # max_freq = Counter(document_tokens).most_common()[0][1]
-    # term_freq = Counter(document_tokens).most_common().count(query_token)
-    # print("Max Frequency", max_freq, "term freq: ", term_freq)
 
-
-    # print(type(document_tokens))
-    
-    return 0
-
-from indexer import preprocess_doc
+# This function is used to query the index, given a list of terms.
+# For each term, the MongoDB index collection is queried, and for each term we
+# 1) use the numdoc (number of documents in which the term apperas in) to find the IDF value 
+#    for that term (log(N/n_t), where N is the total number of documents in the collection and 
+#    n_t is the numdoc)
+# 2) Iterate through each posting in the posting list of the term, and for each posting 
+#    (i.e., a document that contains the term) calculate the TF value using the get_frequency() function
+#    Each document is preproccessed the same way as when we created the Inverted Index, in order to remove stopwords
+#    and stem the terms. The list of preproccessed terms is passed to the get_frequency() function. 
+# We then update the weight of (or aggregator) of each document, by getting the documentWeights[posting] value and setting
+# the new value as w = tf * idf + documentWeights[posting].
+# documentWeights is a set with the document_ids as the key and the documents' weights (or aggregator value) as the values.
+# We return the set with which we will find the top-k documents to display.
 def query(terms, index):
+
     N = database.count_documents({}) 
-    docids = set()
     documentWeights = {} 
-    
-    
+        
     for term in terms:
-        print(term)
         query = {"_id" : term}    
         print("querying for term: ", term)
+        # Querying the index for the given term
         for token in index.find(query):
             tokenlist = (token["list"])
             n_t = tokenlist["numdoc"]
             postings = tokenlist["postinglist"]
-            # print(postings)
-            print("numdoc: ", n_t)
-            
+            # print("numdoc: ", n_t)
+            # Calculating the IDF value.            
             idf = np.log((N/n_t))
-            # print(N, n_t, N/n_t)
-            print("IDF: ", idf)
-            print(postings) 
+            
+            
+            # Finding the TF value for each posting and updating the weight aggregators
             for posting in postings:
+                # We check the documentWeights set to see if an entry for this specific posting exists.
+                # If not, then we create a new entry for this posting with a value of 0.
                 if(documentWeights.get(posting) == None):
                     documentWeights[posting] = 0
 
-                print("posting", posting)
-                # term_frequency = get_frequency(postings[posting], posting)
                 document = get_documents(posting, database)
-                print("DOCUMENT", document)
-                # print(document[0]["speech"])
-                # print(posting, postings[posting])
+                
+                # Preprocessing the documents and getting a list of each token in the document
                 with open('stopwords.txt', encoding='utf-8') as file:
                     stopwords = [line.rstrip() for line in file]
                 document_words = preprocess_doc(document["speech"], stopwords)            
                 
-                
-                # print(document_words)
+                # If an empty list is returned, we continue the loop.                
                 if not document_words:
                     print("EMPTY LIST")
                     continue
                 
+                #Calculating the TF value and updating the weights aggregator for this posting.
                 tf = get_frequency(token["_id"], document_words)
-                print(tf)            
                 pw = documentWeights[posting]
                 w = tf * idf + pw
                 documentWeights[posting] = w        
-                # print("W(",token["_id"], posting, ") = ", tf * idf)
-                print(documentWeights[posting])
-                # break
-                # print(token["_id"])
-                # tf = get_frequency(token["_id"], document_words)
-                # for document_token in document_words:
-                    # print(posting, document_token)
-                    
-    # print(documentWeights)
-    # for p in documentWeights:
-    #     print(p)
+                # print(documentWeights[posting])
+                
     return documentWeights
-    # for term in terms:
-        
-    
-    #     query = {"_id" : term}
-    #     print("querying for token: ", term)
-    
-    #     print("QUERY: ", query)
-    
-    
-    #     for token in index.find(query):
-    #         tokenlist = (token["list"])
-    #         n_t = tokenlist["numdoc"]
-    #         postings = tokenlist["postinglist"]
-    #         # print(postings)
-    #         # print(postings["0"])
-            
-    #         print(term)
-            
-    #         idf = np.log((N/n_t))
-    #         print(N, n_t, N/n_t)
-    #         print("IDF: ", idf)
-            
-    #         for posting in postings:
-                
-    #             # term_frequency = get_frequency(postings[posting], posting)
-    #             document = get_documents(posting, database)
-    #             # print(document[0]["speech"])
-    #             # print(posting, postings[posting])
-    #             with open('stopwords.txt', encoding='utf-8') as file:
-    #                 stopwords = [line.rstrip() for line in file]
-    #             document_words = preprocess_doc(document[0]["speech"], stopwords)            
-                
-    #             print(token["_id"])
-    #             tf = get_frequency(token["_id"], document_words)
-    #             # for document_token in document_words:
-    #                 # print(posting, document_token)
-                    
-    #             docids.add(posting)
-                # docids.append(posting)
-        # print(postings["0"])
-        # for posting in postings:
-        #     print(posting)
-            
-        #     print(xlist[str(posting)])
-    # print(docids)
 
+# Function used to retrieve documents from the document collection, given a docid
 def get_documents(docid, database):
     
-    
     document_query = {"_id" : docid}
-    print(docid)
     document = {}
     for x in database.find(document_query):
         speech = x
         document = speech       
     return document    
 
+def get_top_k_documents(doc_aggregators):
+    top_k = []
+    for aggregator in doc_aggregators:
+        # print(aggregator)
+        top_k.append(aggregator)
+    return top_k[0:50]
+
 def main():
     
     search_string = "να ερθει ο προεδρος της βουλης"
+    search_string = "Το ΠΑΣΟΚ ειναι εδω"
+    search_string = "Μνημόνιο Λιτότητα"
     
     with open('stopwords.txt', encoding='utf-8') as file:
                 stopwords = [line.rstrip() for line in file]
@@ -176,25 +141,28 @@ def main():
     query_tokens = preprocess_doc(search_string, stopwords)
     print(query_tokens)
     index, database = create_db()
-    query_input = "παρακαλειτα"
+    start_time = time.time()
     doc_weights = query(query_tokens, index)
-    top_k = []
-    for p in doc_weights:
-        top_k.append(p)
+    print(len(doc_weights))
+    print("Results shown in ", time.time()-start_time, " seconds.")
+    # top_k = []
+    # for p in doc_weights:
+    #     top_k.append(p)
 
-    # for document in documents:
-    #     print("DOCUMENT \n", "Member Name: ", document["member_name"], "\n Political Party", document["political_party"], "\n Speech: \n", document["speech"], "\n")
-    print(top_k[0:10])
-    top_k = top_k[0:10]
-    print(top_k, "\n\n\n\n\n\n\n\n\n\n")
+    # print(top_k[0:10])
+    # top_k = top_k[0:10]
+    # print(top_k, "\n\n\n\n\n\n\n\n\n\n")
     
+    top_k = get_top_k_documents(doc_weights)
+    print(len(top_k))
     documents = []
-    for tk in top_k:
-        documents.append(get_documents(tk, database))
+    for document in top_k:
+        documents.append(get_documents(document, database))
     
-    for doc in documents:
-        print(doc["_id"])
-        print(doc["speech"])
+    # for doc in documents:
+        # print("\n", doc["_id"], " MP: ", doc["member_name"], " Sitting Date: ", doc["sitting_date"])
+        # print("Political Party: ", doc["political_party"])
+        # print(doc["speech"], "\n")
     
 if __name__ == "__main__":
     main()
