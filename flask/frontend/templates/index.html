@@ -6,7 +6,7 @@
         <title>Greek Parliament Seach Engine</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="{{ url_for('static',filename='css/index.s  css') }}">
+        <link rel="stylesheet" href="{{ url_for('static',filename='css/index.css') }}">
         <script src="{{url_for('static', filename='js/index.js')}}"></script>
 
     </head>
@@ -18,37 +18,17 @@
     
         <div class="container">
             <form action = "/" method="POST">
+              {{ form.hidden_tag() }}
               <div class="input-group">
-                <input type="text" name="query" id="search" placeholder="Search..." autocomplete="off">
-                <label for="search"><i class="fas fa-search"></i></label>
-              </div>
+                  {{ form.query.label }}<br>
+                  {{ form.query(class_="input") }}<br>
+                  {% for error in form.query.errors %}
+                  <span style="color: red;">[{{ error }}]</span>
+                  {% endfor %}
+                  <p>{{ form.submit(class_='input') }}</p>
+                </div>
             </form>
         </div>
-            <div class="filter-button-wrapper">
-              <button class="action-button filter jsFilter"><span>Filter</span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-filter"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg></button>
-              <div class="filter-menu">
-                <label>Category</label>
-                <select>
-                  <option>All Categories</option>
-                  <option>Furniture</option>                     <option>Decoration</option>
-                  <option>Kitchen</option>
-                  <option>Bathroom</option>
-                </select>
-                <label>Status</label>
-                <select>
-                  <option>All Status</option>
-                  <option>Active</option>
-                  <option>Disabled</option>
-                </select>
-                <div class="filter-menu-buttons">
-                  <button class="filter-button reset">
-                    Reset
-                  </button>
-                  <button class="filter-button apply">
-                    Apply
-                  </button>
-                </div>
-              </div>
-            </div>
+
     </body>
 </html>
