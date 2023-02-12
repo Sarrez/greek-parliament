@@ -15,7 +15,7 @@ class LSH:
     ----------
     documents : list
         a list containing all documents to perform LSH on. 
-        each documents must be represented as a list of words.
+        each document must be represented as a list of words.
 
     Methods
     -------
@@ -26,7 +26,7 @@ class LSH:
         self.documents = documents
         self.num_sets = (len(documents))
     
-    def __get_k_shingles(self, vector: list, k: int)->set:
+    def get_k_shingles(self, vector: list, k: int)->set:
         shingles = []
         if(k>0):
             word = ' '.join(vector)
@@ -38,15 +38,15 @@ class LSH:
         return set(shingles)
 
     #all_shingles is a list of sets
-    def __get_vocabulary(self, all_shingles:set)->set:
+    def get_vocabulary(self, all_shingles:set)->set:
         vocab = set()
         for i in range(len(all_shingles)):
             vocab.update(all_shingles[i])
             
         return vocab
 
-    def __get_sparse_matrix(self, vocab:set, all_shingles:set):
-        #CREATE SPARSE MATRIX MxN, WHERE M = LEN(keywords) and N = LEN(vocab)
+    def get_sparse_matrix(self, vocab:set, all_shingles:set):
+        #CREATE SPARSE MATRIX MxN, WHERE M = LEN(feature vectors) and N = LEN(vocab)
         matrix = []
         for k in range(self.num_sets):
             matrix.append([0 for i in range(len(vocab))])
@@ -57,7 +57,7 @@ class LSH:
         return matrix
 
 
-    def __create_signature_matrix(self, vocab:set, num_hashes:int, matrix:list):
+    def create_signature_matrix(self, vocab:set, num_hashes:int, matrix:list):
         hash_ = [i for i in range(0, len(vocab))]
         hashes = []
         for i in range(num_hashes):
@@ -88,7 +88,7 @@ class LSH:
 
         return sim
     
-    def __split_into_bands(self, signature_matrix:list, b:int, columns:int):
+    def split_into_bands(self, signature_matrix:list, b:int, columns:int):
         steps = [i for i in range(0,len(signature_matrix[1]), columns)]
         #print(steps)
         steps.append(len(signature_matrix[0]))
@@ -98,7 +98,7 @@ class LSH:
             #print(steps[i], steps[i+1])
         return splits
     
-    def __get_band_buckets(self, band, hash_funct):
+    def get_band_buckets(self, band, hash_funct):
         buckets = {}
         for doc_id in range(0,len(band)):
             value = hash_funct.get_hash_value( band[doc_id] )
