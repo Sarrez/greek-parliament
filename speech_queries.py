@@ -1,3 +1,4 @@
+import statistics
 from nltk.tokenize import word_tokenize
 import pandas as pd
 import time
@@ -82,12 +83,18 @@ def query(terms, index):
             # print("numdoc: ", n_t)
             # Calculating the IDF value.            
             idf = np.log((N/n_t))
+            print("IDF:  ", idf)
             
-            
+            average_n_t = statistics.mean(list(postings.values()))
+            print("AVERAGE Nt ", average_n_t)
             # Finding the TF value for each posting and updating the weight aggregators
             for posting in postings:
                 # We check the documentWeights set to see if an entry for this specific posting exists.
                 # If not, then we create a new entry for this posting with a value of 0.
+                
+                
+                if(postings[posting]< idf):
+                    continue
                 if(documentWeights.get(posting) == None):
                     documentWeights[posting] = 0
 
@@ -104,9 +111,10 @@ def query(terms, index):
                     continue
                 
                 #Calculating the TF value and updating the weights aggregator for this posting.
-                tf = get_frequency(token["_id"], document_words)
+                # tf = get_frequency(token["_id"], document_words)
+                tf = np.log10(1 + postings[posting] )
                 pw = documentWeights[posting]
-                w = tf * idf + pw
+                w = tf * idf + pw * postings[posting]
                 documentWeights[posting] = w        
                 # print(documentWeights[posting])
                 
@@ -132,8 +140,15 @@ def get_top_k_documents(doc_aggregators):
 def main():
     
     search_string = "να ερθει ο προεδρος της βουλης"
-    search_string = "Το ΠΑΣΟΚ ειναι εδω"
-    search_string = "Μνημόνιο Λιτότητα"
+    # search_string = "Το ΠΑΣΟΚ ειναι εδω"
+    # search_string = "Μνημόνιο Λιτότητα"
+    # # search_string = "ΦΕΚ"
+    # search_string = "Παρακαλειται ο κυριος Βουλγαρακης να παραλαβει τον"
+    # search_string = "του μονου προφητη"
+    # search_string = "Ελληνοτουρκικα"
+    
+    # search_string = "Πρυτανης Αριστοτελειο Πανεπιστημιο Θεσσαλονικης ΑΠΘ"
+    # search_string = "μεταπολιτευση κυβερνησεις"
     
     with open('stopwords.txt', encoding='utf-8') as file:
                 stopwords = [line.rstrip() for line in file]
@@ -159,10 +174,21 @@ def main():
     for document in top_k:
         documents.append(get_documents(document, database))
     
-    # for doc in documents:
-        # print("\n", doc["_id"], " MP: ", doc["member_name"], " Sitting Date: ", doc["sitting_date"])
-        # print("Political Party: ", doc["political_party"])
-        # print(doc["speech"], "\n")
+    result = ""
     
+    with open("query_results.txt", "w", encoding="utf-8") as f:
+        for doc in documents:
+            print("\n", doc["_id"], " MP: ", doc["member_name"], " Sitting Date: ", doc["sitting_date"])
+            print("Political Party: ", doc["political_party"])
+            print(doc["speech"], "\n")
+            
+            result += "\n"
+            result += doc["_id"] + " MP: " +  doc["member_name"] + "\nSitting Date: " + doc["sitting_date"]
+            result += "\nPolitical Party: " + doc["political_party"] + "\n"
+            result += doc["speech"] + "\n"
+            
+            f.write(result)
+        f.close()
+        
 if __name__ == "__main__":
     main()
