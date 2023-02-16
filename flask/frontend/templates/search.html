@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <form action = "/" method="POST">
+      {{ form.hidden_tag() }}
+      <div class="input-group">
+          {{ form.query.label }}<br>
+          {{ form.query(class_="input") }}<br>
+          {% for error in form.query.errors %}
+          <span style="color: red;">[{{ error }}]</span>
+          {% endfor %}
+          <p>{{ form.submit(class_='input') }}</p>
+        </div>
+    </form>
+</div>
+{% endblock %}

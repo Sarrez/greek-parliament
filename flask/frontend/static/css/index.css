@@ -1,31 +1,153 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Nunito', sans-serif;
+#wrap {
+  width: calc(100vw - 480px);
+  margin-top:0;
+  margin-bottom:0;
+  margin-left:auto;
+  margin-right:auto;
+}
+/***************************NAVBAR***************************/
+#nav {
+    width: calc(100vw - 480px);
+    margin-top:0;
+    margin-bottom:0;
+    margin-left:auto;
+    margin-right:auto;
   }
-  
-  body {
-    background-color: #110e17;
+header {
+    background-color: white;
+    padding-top: 30px;
+    margin-bottom: 70px;
   }
-  
-  .container {
+nav {
+    height:6em;
+    margin-top:20px;
+    background-color: #3781e8;
+    overflow: hidden;
+    border: solid 5px;
+  }
+  nav > ul {
+  width: 1200px;
+  color: #a34747;
+}
+
+nav > ul:after {
+  content:"";
+  clear:both;
+  display:block;
+}
+
+nav > ul >  li {
+  display: inline;
+  line-height: 2.67em;
+  margin: 0;
+  float: left;
+}
+
+nav > ul > li > a {
+  float: left;
+  height: 2.67em;
+  line-height: 2.67em;
+  padding: 0 15px;
+  font-family: Georgia;
+  font-size: 1.7em;
+  color: white;
+}
+/***************************NAVBAR***************************/
+body {
+    background-color: white;
+    min-height: 100vh;
+    Font-family: georgia, garamond, times;
+    font-size: 15px;
+    line-height: 1.125em;
+    color: black;
+    margin:0;
+    padding:0;
+}
+/***************************TEXT***************************/
+p, li {
+  font-family: georgia, garamond;
+  margin: 1em 00.0em;
+  line-height:1.25em;   
+}
+
+h1, h2 {
+  font-family:georgia, garamond;
+  margin: 1em 0 0.5em;
+  line-height:1.2em;
+  font-size:2em;
+  border-bottom: solid 3px #de8a44;
+}
+
+h4 {
+  font-family: georgia, garamond;
+  font-size: 1.1em;
+}
+
+a {
+  color: #d47e49;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: none;
+  color: #d47e49
+}
+/***************************TEXT***************************/
+
+/***************************SHOW SPEECH***************************/
+section {
+  background-color: white;
+  width: calc(100vw - 480px);
+  margin-top:0;
+  margin-bottom:0;
+  margin-left:auto;
+  margin-right:auto;
+}
+
+.speech {
+  width:745px;
+  float: left;
+  padding-left: 15px;
+  padding-right: 15px;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-left:0px;
+  background-color: white;
+}
+
+.rightcol {
+  width: 380px;
+  float: left;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-right: 25px;
+  background-color: white;
+}
+/***************************SHOW SPEECH***************************/
+div {
+  text-align:justify;
+  text-justify:inter-word;
+  }
+.container {
     max-width: 600px;
     margin: 0 auto;
     padding: 60px 15px;
   }
-  
-  form {
+
+/***************************SEARCH FORM***************************/
+form {
     max-width: 80%;
     margin: 0 auto;
     position: relative;
   }
   
-  .input-group {
+.input-group {
     position: relative;
   }
   
-  label {
+label {
     position: absolute;
     right: 2%;
     top: 50%;
@@ -34,7 +156,7 @@
     transition: all 0.2s ease;
   }
   
-  input {
+input {
     width: 100%;
     padding: 8px 30px 8px 12px;
     border: 2px solid rgba(0, 0, 0, 0.08);
@@ -48,19 +170,19 @@
     transition: all 0.2s ease;
   }
   
-  input:focus {
+input:focus {
     border-color: #F27121;
   }
   
-  input:focus + label {
+input:focus + label {
     transform: scale(1.05) translatey(-50%);
     color: #F27121;
   }
   
-  .filter-button-wrapper {
+.filter-button-wrapper {
     position: relative;
   }
-  .filter-menu {
+.filter-menu {
     background-color: var(--app-content-secondary-color);
    position: absolute;
    top: calc(100% + 16px);
@@ -75,3 +197,18 @@
    opacity: 0;
    transition: .2s;
   }
+/***************************SEARCH FORM***************************/
+
+/***************************FOOTER***************************/
+  footer {
+    width: calc(100vw - 480px);
+    background-color:white;
+    border-top: solid 3px #d47e49; 
+    padding: 10px;
+    clear:both;
+    text-align: center;
+    position: fixed;
+    bottom: 0;
+    margin: 0 auto;
+  }
+/***************************FOOTER***************************/

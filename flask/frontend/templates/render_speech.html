@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+    <section>
+        <div class="info">
+            <div class="rightcol">
+                <h2>Speech Info</h2>
+                <ul>
+                    {% for entry in data %}
+                    <li>Name: {{ entry['member_name'] }}</li>
+                    <li>Sitting data: {{ entry['sitting_date'] }} </li>
+                    <li>Keywords: {{ entry['keywords'] }} </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <div class="speech">
+            <div class="leftcol">
+                <h2>Speech</h2>
+                {% for entry in data %}
+                    <p>{{ entry['speech'] }}</p>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+{% endblock %}
