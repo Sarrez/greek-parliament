@@ -93,7 +93,7 @@ def query(terms, index):
                 # If not, then we create a new entry for this posting with a value of 0.
                 
                 
-                if(postings[posting]< idf):
+                if(postings[posting]< 3):
                     continue
                 if(documentWeights.get(posting) == None):
                     documentWeights[posting] = 0
@@ -145,7 +145,7 @@ def main():
     # # search_string = "ΦΕΚ"
     # search_string = "Παρακαλειται ο κυριος Βουλγαρακης να παραλαβει τον"
     # search_string = "του μονου προφητη"
-    # search_string = "Ελληνοτουρκικα"
+    search_string = "Ελληνοτουρκικα"
     
     # search_string = "Πρυτανης Αριστοτελειο Πανεπιστημιο Θεσσαλονικης ΑΠΘ"
     # search_string = "μεταπολιτευση κυβερνησεις"
@@ -178,6 +178,7 @@ def main():
     
     with open("query_results.txt", "w", encoding="utf-8") as f:
         for doc in documents:
+            f.write("Query: "+  search_string+ "\n\n\n")
             print("\n", doc["_id"], " MP: ", doc["member_name"], " Sitting Date: ", doc["sitting_date"])
             print("Political Party: ", doc["political_party"])
             print(doc["speech"], "\n")
