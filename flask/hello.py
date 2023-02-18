@@ -13,6 +13,7 @@ app.config.update(dict(
     SECRET_KEY="powerful secretkey",
     WTF_CSRF_SECRET_KEY="a csrf secret key"
 ))
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 #FLASK BOOTSTRAP
 Bootstrap(app)
 mod = Blueprint('speeches', __name__)
@@ -34,18 +35,30 @@ def index():
       return redirect(url_for('show_speeches', query = query))
    
     return render_template('index.html', form=form)
- 
+  
+@app.route('/search', methods=['GET', 'POST'])
+def search():
+    form = SearchForm()
+    response = ""
+    if form.validate_on_submit():
+      query = form.query.data
+      form.query.data = ""
+      return redirect(url_for('show_speeches', query = query))
+   
+    return render_template('search.html', form=form)
+  
 @app.route('/speeches/<string:query>)', methods=('GET', 'POST'))
 def show_speeches(query):
-   search = False
-   q = request.args.get('q')
-   if q:
-      search = True
    results = list(database.find({ })[:int(query)])
+   print(results)
    ###########DEFINE PAGINATION###########
-   page = request.args.get(get_page_parameter(), type=int, default=1)
-   pagination = Pagination(page=page, total=len(results), search=search, record_name='speeches')
-   return render_template('speeches.html', speeches=results, page=page, pagination=pagination)
 
+   return render_template('speeches.html', speeches=results)
+
+@app.route('/render_speech/<string:id>)', methods=('GET', 'POST'))
+def render_speech(id):
+  results = list(database.find({"_id":id}))
+  return render_template('render_speech.html', data=results)
+ 
 if __name__ == '__main__':
    app.run(debug = True)

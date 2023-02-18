@@ -49,9 +49,11 @@ def preprocess_doc(doc: str, stopwords:list) -> list:
     d = {ord('\N{COMBINING ACUTE ACCENT}'):None}
     doc = ud.normalize('NFD',doc).translate(d)
     stemmer = GreekStemmer()
-    #doc = doc.lower()
+    #remove all punctuation from
+    doc = doc.translate(str.maketrans('','',string.punctuation))
+    words = []
     if doc!="":
-        words = [stemmer.stem(w.upper()).lower() for w in filter(None, re.split('[,~`; _".\-!?:]+',doc)) if w not in stopwords and w not in string.punctuation]
+        words = [stemmer.stem(w.upper()).lower() for w in doc.split() if w not in stopwords]
     return words
 
 def insert_db(path_to_csv:str):
