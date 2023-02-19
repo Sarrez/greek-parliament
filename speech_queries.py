@@ -144,7 +144,7 @@ def main_(search_string):
     # # search_string = "ΦΕΚ"
     # search_string = "Παρακαλειται ο κυριος Βουλγαρακης να παραλαβει τον"
     # search_string = "του μονου προφητη"
-    # search_string = "Ελληνοτουρκικα"
+    search_string = "Ελληνοτουρκικα"
     
     # search_string = "Πρυτανης Αριστοτελειο Πανεπιστημιο Θεσσαλονικης ΑΠΘ"
     # search_string = "μεταπολιτευση κυβερνησεις"
