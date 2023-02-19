@@ -25,7 +25,7 @@ def extract_document_keywords(speech_indexes:list, database):
     for i in range(0, len(speech_indexes)):
         print("Doc:", speech_indexes[i])
         speech = list(database.find({"_id": str(speech_indexes[i]) }, { "_id": 0, "speech": 1 }))
-        scores, keywords = ex.document_keywords(speech[0]['speech'], stopwords, domain_specific_stopwords, window = 3, language = language)
+        keywords = ex.document_keywords(speech[0]['speech'], stopwords, domain_specific_stopwords, window = 3, language = language)
         database.update_one({"_id":str(speech_indexes[i])},{'$set':{'keywords':list(keywords)}})
         
 ################### FOR MEMBERS ###################
@@ -42,7 +42,7 @@ def get_member_keywords(member_name:string, database, government=None)->list:
         keywords_by_speech = database.aggregate(pipeline)
         
     total_keywords = []
-    language = spacy.load('el_core_news_sm')
+    #language = spacy.load('el_core_news_sm')
     counter = 0
     for keyword_list in keywords_by_speech:
         total_keywords.extend(keyword_list['_id'])
