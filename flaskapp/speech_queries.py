@@ -4,7 +4,7 @@ import pandas as pd
 import time
 import string 
 import unicodedata as ud
-from greek_stemmer import GreekStemmer
+from greek_stemmer.stemmer import GreekStemmer
 import pymongo
 import re
 import numpy as np
