@@ -78,7 +78,7 @@ def insert_db(path_to_csv:str):
     else:
         print("Database collection already has entries")
 
-def create_index(total_documents:int, chunksize:int):
+def create_index(total_documents:int, chunksize:int, min_doc_length = 20):
     print("Creating Inverted Index...")
     chunk = []
     counter = 0
@@ -108,7 +108,7 @@ def create_index(total_documents:int, chunksize:int):
             When the chunk is finished, we will create a json file with the index of this chunk and we'll do the process again for the next chunk.
             
             '''
-            if(len(words_in_row)>20):
+            if(len(words_in_row)>min_doc_length):
                 size_distribution.append(len(words_in_row))
                 
                 for word in words_in_row:
@@ -167,7 +167,7 @@ def insert_to_database(tokens, collection):
             token_to_update = {"list":{"numdoc":numdoc, "postinglist":x['list']['postinglist']}}
             collection.update_one({"_id":token}, {"$set":token_to_update})
 
-def post_process_index(index):
+def post_process_index(index, database):
     #REMOVE TERMS WITH NUMDOC==1
     threshold = list(index.find({"list.numdoc":{"$lt":2}}, { "_id": 1, "list.numdoc": 0 }))
     print(len(threshold))
@@ -179,7 +179,10 @@ def post_process_index(index):
     for i in range(len(res)):
         total_documents = set((res[i]['list']['postinglist'].keys()))
         total.update(total_documents)
-    # 2. REMOVE DOCUMENTS NOT IN INDEX
+    # REMOVE DOCUMENTS NOT IN INDEX
+    for doc_id in total:
+        database.delete_one({'_id':doc_id})
+        
 #create index (must import database to mongo first!!!!!!! )
 import argparse
 def main():
@@ -199,10 +202,16 @@ def main():
         type=int,
         help="The number of chunks"
     )
+    parser.add_argument(
+        'min_doc_length',
+        type=int,
+        help="The minimum length of a speech in order to be part of the index"
+    )
     args = parser.parse_args()
     index, database = create_db()
     insert_db(args.csv_path)
-    create_index(args.total_documents, args.chunksize)
+    create_index(args.total_documents, args.chunksize, args.min_doc_length)
+    post_process_index(index, database)
 
 if __name__ == "__main__":
     main()

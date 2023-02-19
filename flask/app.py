@@ -2,15 +2,7 @@ from pymongo import MongoClient
 from flask import Blueprint
 from flask import Flask, render_template, redirect, url_for
 from flask_bootstrap import Bootstrap
-from flask_wtf import FlaskForm
-from wtforms.validators import DataRequired
 from forms import SearchForm
-import json
-import os
-import sys
-# setting path
-#sys.path.append("..")
-#print(sys.path)
 from speech_queries import main_
 #CONFIGURE FLASK APP
 app = Flask(__name__, template_folder='./frontend/templates',static_folder='./frontend/static')
@@ -30,18 +22,18 @@ index = client["InvertedIndex"]
 database = client["Database"]
 ####################CONNECT TO MONGO####################
 
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    form = SearchForm()
-    response = ""
-    if form.validate_on_submit():
-      query = form.query.data
-      form.query.data = ""
-      return redirect(url_for('show_speeches', query = query))
+#@app.route('/', methods=['GET', 'POST'])
+#def index():
+#    form = SearchForm()
+#    response = ""
+#    if form.validate_on_submit():
+#      query = form.query.data
+#      form.query.data = ""
+#      return redirect(url_for('show_speeches', query = query))
    
-    return render_template('index.html', form=form)
+#    return render_template('index.html', form=form)
   
-@app.route('/search', methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST'])
 def search():
     form = SearchForm()
     response = ""
@@ -56,7 +48,6 @@ def search():
 def show_speeches(query):
    topk = main_(query)
    results = [list(database.find({'_id':id_})) for id_ in topk]
-   #print(results)
 
    return render_template('speeches.html', speeches=results)
 

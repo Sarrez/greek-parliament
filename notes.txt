@@ -1,4 +1,0 @@
-1. built in csv reader or pandas reader? (better read/write speed?)
-2. is python's dictionary like a hashmap regarding speed???
-3. is lsa performed on the inverted index or after creating the index?
-4. κλίσεις λέξεων

@@ -1,3 +1,7 @@
+html {
+  position: relative;
+  min-height: 100%;
+}
 #wrap {
   width: calc(100vw - 480px);
   margin-top:0;
@@ -55,12 +59,14 @@ nav > ul > li > a {
 /***************************NAVBAR***************************/
 body {
     background-color: white;
-    min-height: 120vh;
-    Font-family: georgia, garamond, times;
+    height: 100%;
+    min-height: 100%;
+    font-family: georgia, garamond, times;
     font-size: 15px;
     line-height: 1.125em;
     color: black;
     margin:0;
+    margin-bottom: 100px;
     padding:0;
 }
 /***************************TEXT***************************/
@@ -99,13 +105,13 @@ section {
   background-color: white;
   width: calc(100vw - 480px);
   margin-top:0;
-  margin-bottom:0;
+  margin-bottom:20px;
   margin-left:auto;
   margin-right:auto;
 }
 
 .speech {
-  width:745px;
+  width:900px;
   float: left;
   padding-left: 15px;
   padding-right: 15px;
@@ -116,12 +122,12 @@ section {
 }
 
 .rightcol {
-  width: 380px;
+  width: 480px;
   float: left;
   padding-left: 10px;
   padding-right: 10px;
   padding-top: 0;
-  padding-bottom: 0;
+  padding-bottom: 20px;
   margin-right: 25px;
   background-color: white;
 }
@@ -207,8 +213,9 @@ input:focus + label {
     padding: 10px;
     clear:both;
     text-align: center;
-    position: fixed;
+    position: absolute;
     bottom: 0;
     margin: 0 auto;
+    height: 70px;
   }
 /***************************FOOTER***************************/

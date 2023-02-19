@@ -1,0 +1,55 @@
+version: '4.2'
+networks:
+  greekparliament:
+services:
+  app:
+    build:
+        context: .
+        dockerfile: Dockerfile
+    command: python -u flask/hello.py
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+    links:
+      - mongo
+    networks:
+      - "greekparliament"
+  mongo:
+    image: mongo:latest
+    env_file:
+      - .env
+    shm_size: '6gb'
+    hostname: mongodb
+    container_name: 'mongo_container'
+    environment:
+      - MONGO_INITDB_DATABASE=GreekParliamentProceedings
+      - MONGO_INITDB_ROOT_USERNAME=greekparliament
+      - MONGO_INITDB_ROOT_PASSWORD=greekparliament
+    volumes:
+      - ./init-db.js:/docker-entrypoint-initdb.d/init-db.js:ro
+      - ./mongo-volume:/data/db
+    ports:
+      - '27017:27017'
+    networks:
+      - "greekparliament"
+  mongo-seed:
+    env_file:
+        - .env
+    build:
+      context: ./mongo_seed
+      dockerfile: Dockerfile
+      args:
+          - DATABASE_URI=$DATABASE_URI
+          - USERNAME=$MONGO_INITDB_ROOT_USERNAME
+          - PASSWORD=$MONGO_INITDB_ROOT_PASSWORD
+    depends_on:
+      - mongo
+    networks:
+      - "greekparliament"
+
+
+
+
+
+

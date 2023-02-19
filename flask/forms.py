@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import TextAreaField, PasswordField, SubmitField, StringField
-from wtforms.validators import DataRequired, Length, Email, EqualTo
+from wtforms import SubmitField, StringField
+from wtforms.validators import DataRequired, Length
 
 class SearchForm(FlaskForm):
-    query = StringField('Search something', validators=[DataRequired(), Length(min=1, max=140)])
+    query = StringField(' ', validators=[DataRequired(), Length(min=1, max=30)])
     submit = SubmitField('Search')
