@@ -116,7 +116,7 @@ section {
   padding-left: 15px;
   padding-right: 15px;
   padding-top: 0;
-  padding-bottom: 0;
+  padding-bottom: 150px;
   margin-left:0px;
   background-color: white;
 }
@@ -215,7 +215,7 @@ input:focus + label {
     text-align: center;
     position: absolute;
     bottom: 0;
-    margin: 0 auto;
+    margin-top: 50px;
     height: 70px;
   }
 /***************************FOOTER***************************/
