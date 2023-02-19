@@ -71,7 +71,7 @@ def query(terms, index):
 
     N = database.count_documents({}) 
     documentWeights = {} 
-    with open('../stopwords.txt', encoding='utf-8') as file:
+    with open('stopwords.txt', encoding='utf-8') as file:
         stopwords = [line.rstrip() for line in file]
     for term in terms:
         query = {"_id" : term}    
@@ -149,7 +149,7 @@ def main_(search_string):
     # search_string = "Πρυτανης Αριστοτελειο Πανεπιστημιο Θεσσαλονικης ΑΠΘ"
     # search_string = "μεταπολιτευση κυβερνησεις"
     
-    with open('../stopwords.txt', encoding='utf-8') as file:
+    with open('stopwords.txt', encoding='utf-8') as file:
         stopwords = [line.rstrip() for line in file]
     
     query_tokens = preprocess_doc(search_string, stopwords)
