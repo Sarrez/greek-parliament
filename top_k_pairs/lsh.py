@@ -71,8 +71,6 @@ class LSH:
         for i in range(len(matrix[0])):
             for j in range(len(matrix)):
                 if(matrix[j][i]==1):
-                    # there are k=128 hashes, each hash has i=408 items
-                    # CRITICAL
                     for k, hash_ in enumerate(hashes):
                         if(hash_[i]<signature_matrix[j][k]):
                             signature_matrix[j][k] = hash_[i]
@@ -157,4 +155,3 @@ class hashFamily:
     def get_hash_value(self, el_to_hash):
         return int(hashlib.sha1(str(el_to_hash).encode('utf-8') + self.salt.encode('utf-8')).hexdigest()[-self.resultSize:], 16)
 
-# NOTE: we use sha1 to avoid installing and importing an external library, sacrificing performances. No crypto-hash is required for this use case.

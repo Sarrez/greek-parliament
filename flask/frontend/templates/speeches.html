@@ -14,11 +14,11 @@
     <tbody>
       {% for speech in speeches %}
         <tr>
-          <td>{{ speech['member_name'] }}</td>
-          <td>{{ speech['political_party'] }}</td>
-          <td>{{ speech['government'] }}</td>
-          <td>{{ speech['roles'] }}</td>
-          <td><a href="{{ url_for('render_speech', id=speech['_id'])}}">speech</a></td>
+          <td>{{ speech[0]['member_name'] }}</td>
+          <td>{{ speech[0]['political_party'] }}</td>
+          <td>{{ speech[0]['government'] }}</td>
+          <td>{{ speech[0]['roles'] }}</td>
+          <td><a href="{{ url_for('render_speech', id=speech[0]['_id'])}}">speech</a></td>
         </tr>
       {% endfor %}
     </tbody>

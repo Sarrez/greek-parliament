@@ -55,7 +55,7 @@ nav > ul > li > a {
 /***************************NAVBAR***************************/
 body {
     background-color: white;
-    min-height: 100vh;
+    min-height: 120vh;
     Font-family: georgia, garamond, times;
     font-size: 15px;
     line-height: 1.125em;

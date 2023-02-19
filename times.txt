@@ -1,3 +1,0 @@
-Time for 5 chunks of 10,000 rows without preprocessing the data: 389 seconds
-    180854 tokens
-Time for 5 chunks of 10,000 rows after preprocessing the data:

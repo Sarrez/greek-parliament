@@ -33,6 +33,7 @@ The script can be imported as a module and contains the methods listed:
 
 def create_db():    
     mongo_client = pymongo.MongoClient("mongodb://localhost:27017/")
+    #mongo_client.drop_database("GreekParliamentProceedings")
     client = mongo_client["GreekParliamentProceedings"]
     index = client["InvertedIndex"]
     database = client["Database"]
@@ -173,12 +174,8 @@ def post_process_index(index):
     print(len(threshold))
     for entry in threshold:
         index.delete_one({'_id':entry['_id']})
-    # FIND WHICH DOCUMENTS ARE IN INDEX
-    res = list(index.find({ }, { "_id": 0, "list.postinglist": 1 }))
-    total = set()
-    for i in range(len(res)):
-        total_documents = set((res[i]['list']['postinglist'].keys()))
-        total.update(total_documents)
+    #TODO
+    # 1. READ WHICH DOCUMENTS ARE IN INDEX
     # 2. REMOVE DOCUMENTS NOT IN INDEX
 #create index (must import database to mongo first!!!!!!! )
 import argparse

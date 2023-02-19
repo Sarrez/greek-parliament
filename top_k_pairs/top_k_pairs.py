@@ -15,7 +15,7 @@ class Top_k_Pairs:
     def __init__(self):
         return
     
-    def get_pairs(self, k, feature_vectors:list, threshold=0.7, num_hashes=256, num_bands=32, num_columns=4):
+    def get_pairs(self, k, feature_vectors:list, threshold=0.5, num_hashes=256, num_bands=32, num_columns=4):
         #consider keywords as a list of lists. consider each sublist as a feature vector of a parliament member
         lsh = LSH(feature_vectors)
         #find candidate pairs using LSH

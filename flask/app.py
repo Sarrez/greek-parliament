@@ -1,12 +1,17 @@
 from pymongo import MongoClient
 from flask import Blueprint
-from flask_paginate import Pagination, get_page_parameter, request
 from flask import Flask, render_template, redirect, url_for
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 from forms import SearchForm
+import json
+import os
+import sys
+# setting path
+#sys.path.append("..")
+#print(sys.path)
+from speech_queries import main_
 #CONFIGURE FLASK APP
 app = Flask(__name__, template_folder='./frontend/templates',static_folder='./frontend/static')
 app.config.update(dict(
@@ -49,9 +54,9 @@ def search():
   
 @app.route('/speeches/<string:query>)', methods=('GET', 'POST'))
 def show_speeches(query):
-   results = list(database.find({ })[:int(query)])
-   print(results)
-   ###########DEFINE PAGINATION###########
+   topk = main_(query)
+   results = [list(database.find({'_id':id_})) for id_ in topk]
+   #print(results)
 
    return render_template('speeches.html', speeches=results)
 
@@ -61,4 +66,4 @@ def render_speech(id):
   return render_template('render_speech.html', data=results)
  
 if __name__ == '__main__':
-   app.run(debug = True)
+   app.run(host="0.0.0.0", debug = True)

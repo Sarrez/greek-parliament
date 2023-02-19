@@ -1,6 +1,6 @@
 import math
 import numpy as np
-from indexer import create_index, preprocess_doc
+from query_processor.indexer import create_index, preprocess_doc
 import pandas as pd
 
 def idf(num_of_docs, num_of_docs_with_term):
