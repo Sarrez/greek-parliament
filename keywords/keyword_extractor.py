@@ -4,7 +4,7 @@ import unicodedata as ud
 import pymongo
 import re
 import networkx as nx
-from flaskapp.greek_stemmer.stemmer import GreekStemmer
+from greek_stemmer.stemmer import GreekStemmer
 import spacy
 import math
 import string
