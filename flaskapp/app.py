@@ -16,7 +16,7 @@ Bootstrap(app)
 mod = Blueprint('speeches', __name__)
 
 ####################CONNECT TO MONGO####################
-mongo_client = MongoClient(""mongodb+srv://sarrez:sarrez@cluster0.dqcywqp.mongodb.net/?retryWrites=true&w=majority"")
+mongo_client = MongoClient("mongodb+srv://sarrez:sarrez@cluster0.dqcywqp.mongodb.net/?retryWrites=true&w=majority")
 client = mongo_client["GreekParliamentProceedings"]
 index = client["InvertedIndex"]
 database = client["Database"]
